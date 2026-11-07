@@ -1,6 +1,6 @@
 # 分布式雷达显控终端
 
-浏览器端海图与船舶三维态势演示，附独立的 Windows/Python ZMQ 接收框架。
+海图与船舶三维态势演示，Python 后端生成仿真数据并通过 HTTP 提供给浏览器，附 ZMQ 接收框架。
 
 ## 当前功能
 
@@ -11,6 +11,8 @@
 - ZMQ 公共消息头检查、消息接收状态与 HTTP 接口。
 
 当前船舶运动和碰撞预测使用仿真数据。ISAR、光学和三维结果卡片使用示例图片。真实航迹、成像和识别载荷解码仍待正式协议样包接入；接收到 ZMQ 消息不表示真实目标已显示在海图上。
+
+船舶生成、航行推进和最多 180 个历史采样点由后端维护。网页每 800 毫秒读取 `/api/state`，只显示后端船位，不自行生成或推进船舶。所有访问者共享同一仿真时钟，刷新网页不重置；服务重启会重新开始。倍速通过 `POST /api/simulation/rate` 的 `{"rate": 5}` 调整，对所有访问者生效。碰撞风险仍由前端根据收到的船位、航向和速度计算。
 
 ## 本地运行
 
@@ -39,6 +41,7 @@ Copy-Item windows_zmq_bridge/settings.example.json windows_zmq_bridge/settings.j
 {
   "host": "127.0.0.1",
   "port": 8080,
+  "mode": "zmq",
   "sources": [
     {"name": "数据处理机", "endpoint": "tcp://<实际IP>:<实际端口>", "topic": ""}
   ]
@@ -63,6 +66,7 @@ python windows_zmq_bridge/bridge.py --web-root web
 | `web/three.min.js`、`web/GLTFLoader.js` | 三维引擎与兼容修正后的模型加载器 |
 | `windows_zmq_bridge/bridge.py` | HTTP 服务及 ZMQ 接收框架 |
 | `windows_zmq_bridge/protocol.py` | 消息封装检查 |
+| `windows_zmq_bridge/simulation.py` | 后端船舶、仿真时钟与历史航迹 |
 | `web/ATTRIBUTION.txt` | 第三方图片与模型来源、许可说明 |
 
 ## 检查
@@ -72,6 +76,8 @@ python windows_zmq_bridge/bridge.py --web-root web
 ```powershell
 node web/check-ship-models.cjs
 node web/check-bridge-scene.cjs
+node web/check-backend-state.cjs
+python -m unittest discover -s windows_zmq_bridge -p test_simulation.py
 ```
 
 ## 素材与配置

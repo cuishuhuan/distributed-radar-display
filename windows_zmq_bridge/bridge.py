@@ -17,13 +17,15 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 from protocol import ProtocolError, inspect_message
+from simulation import FleetSimulator
 
 
 LOG = logging.getLogger("radar_bridge")
 
 
 class MessageStore:
-    def __init__(self) -> None:
+    def __init__(self, simulator=None) -> None:
+        self.simulator = simulator
         self.lock = threading.Lock()
         self.received = 0
         self.rejected = 0
@@ -53,7 +55,7 @@ class MessageStore:
 
     def snapshot(self) -> dict:
         with self.lock:
-            return {
+            result = {
                 "mode": "live" if self.received else "waiting",
                 "updatedUtc": self.recent[0]["receivedUtc"] if self.recent else None,
                 "receivedMessages": self.received,
@@ -65,6 +67,9 @@ class MessageStore:
                 "tracks": [],
                 "points": [],
             }
+        if self.simulator:
+            result.update(self.simulator.snapshot())
+        return result
 
 
 def receive_loop(sources: list[dict], store: MessageStore, stop: threading.Event) -> None:
@@ -112,18 +117,42 @@ def make_handler(store: MessageStore, web_root: Path | None):
                 self.send_json(store.snapshot())
                 return
             if path == "/":
-                self.send_file(web_root / "ui-index.html" if web_root else None)
+                self.send_file((web_root / "ui-index.html" if (web_root / "ui-index.html").is_file() else web_root / "index.html") if web_root else None)
                 return
             if path.startswith("/assets/") and web_root:
-                name = path.removeprefix("/assets/")
+                name = path[len("/assets/"):]
                 if "/" not in name and "\\" not in name and name not in (".", ".."):
-                    self.send_file(web_root / name)
+                    self.send_file(web_root / name if (web_root / name).is_file() else web_root / "assets" / name)
                     return
             self.send_error(404)
 
-        def send_json(self, value: dict) -> None:
+        def do_POST(self) -> None:
+            if urlsplit(self.path).path != '/api/simulation/rate':
+                self.send_error(404)
+                return
+            if not store.simulator:
+                self.send_json({'error': '当前不是仿真模式'}, 409)
+                return
+            try:
+                origin = self.headers.get('Origin')
+                if origin and urlsplit(origin).netloc != self.headers.get('Host'):
+                    self.send_json({'error': '只允许本站请求'}, 403)
+                    return
+                length = int(self.headers.get('Content-Length', '0'))
+                if not 0 < length <= 1024:
+                    raise ValueError('无效请求长度')
+                data = json.loads(self.rfile.read(length))
+                if not isinstance(data, dict):
+                    raise ValueError('请求必须为 JSON 对象')
+                store.simulator.set_rate(data.get('rate'))
+            except (ValueError, TypeError) as exc:
+                self.send_json({'error': str(exc)}, 400)
+                return
+            self.send_json(store.snapshot())
+
+        def send_json(self, value: dict, status=200) -> None:
             body = json.dumps(value, ensure_ascii=False).encode("utf-8")
-            self.send_response(200)
+            self.send_response(status)
             self.send_header("Content-Type", "application/json; charset=utf-8")
             self.send_header("Cache-Control", "no-store")
             self.send_header("Content-Length", str(len(body)))
@@ -170,16 +199,19 @@ def main() -> None:
     web_root = args.web_root or (Path(config["web_root"]) if config.get("web_root") else None)
     if web_root:
         web_root = web_root.resolve()
-        if not (web_root / "ui-index.html").is_file():
+        if not any((web_root / name).is_file() for name in ('ui-index.html', 'index.html')):
             parser.error(f"网页目录缺少 ui-index.html：{web_root}")
 
-    store = MessageStore()
+    mode = config.get('mode', 'zmq' if sources else 'simulation')
+    if mode not in ('simulation', 'zmq'):
+        parser.error('mode 必须为 simulation 或 zmq')
+    store = MessageStore(FleetSimulator(config.get('simulationRate', 5)) if mode == 'simulation' else None)
     stop = threading.Event()
-    if sources:
+    if sources and mode == 'zmq':
         thread = threading.Thread(target=receive_loop, args=(sources, store, stop), daemon=True)
         thread.start()
     else:
-        LOG.warning("没有配置 ZMQ 数据源，服务处于等待状态")
+        LOG.info("数据模式：%s", mode)
     server = ThreadingHTTPServer((host, port), make_handler(store, web_root))
     LOG.info("网页和接口：http://%s:%d/", host, port)
     try:
