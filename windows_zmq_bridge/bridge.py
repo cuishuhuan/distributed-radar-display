@@ -7,6 +7,7 @@ page can be served locally with --web-root; no Qt process is required.
 from __future__ import annotations
 
 import argparse
+import gzip
 import json
 import logging
 import threading
@@ -152,7 +153,13 @@ def make_handler(store: MessageStore, web_root: Path | None):
 
         def send_json(self, value: dict, status=200) -> None:
             body = json.dumps(value, ensure_ascii=False).encode("utf-8")
+            compressed = 'gzip' in self.headers.get('Accept-Encoding', '')
+            if compressed:
+                body = gzip.compress(body)
             self.send_response(status)
+            if compressed:
+                self.send_header('Content-Encoding', 'gzip')
+            self.send_header('Vary', 'Accept-Encoding')
             self.send_header("Content-Type", "application/json; charset=utf-8")
             self.send_header("Cache-Control", "no-store")
             self.send_header("Content-Length", str(len(body)))

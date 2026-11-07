@@ -3,6 +3,8 @@ const html=fs.readFileSync(__dirname+'/ui-index.html','utf8');
 for(const match of html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g))new vm.Script(match[1]);
 assert(!html.includes('simulationPositionAt'));
 assert(!html.includes('recordShipHistories'));
+assert(!html.includes('\npreloadShipModels();'));
+assert(html.includes("priority:'high',signal:AbortSignal.timeout(15000)"));
 const start=html.indexOf('function applyBackendState('),end=html.indexOf('async function setSimRate',start);
 const elements={},context=vm.createContext({simShips:[],shipHistories:new Map(),viewShip:null,selectedShip:null,trailShip:null,fpScene:null,simRate:5,document:{activeElement:null},$:id=>elements[id]??={}});
 vm.runInContext(html.slice(start,end),context);
@@ -19,3 +21,15 @@ assert.equal(context.simShips.length,0);
 assert.equal(context.shipHistories.size,0);
 assert(elements.simRate.disabled);
 console.log('Frontend syntax, authoritative positions, stable selection and empty ZMQ state OK');
+async function checkLoadQueue(){
+ const calls=[],scope=vm.createContext({THREE:{GLTFLoader:function(){this.load=(...args)=>calls.push(args)}},gltfLoader:null,gltfCache:{},shipAssetVersion:'test',normalizeShipTemplate:s=>s});
+ vm.runInContext(html.slice(html.indexOf('let modelLoadTail='),html.indexOf('function shipKind')),scope);
+ const first=scope.loadShipTemplate('first'),second=scope.loadShipTemplate('second');
+ assert.strictEqual(first,scope.loadShipTemplate('first'));
+ await Promise.resolve();assert.equal(calls.length,1);
+ calls[0][1]({scene:'first'});assert.equal(await first,'first');
+ await Promise.resolve();assert.equal(calls.length,2);
+ calls[1][1]({scene:'second'});assert.equal(await second,'second');
+ console.log('Ship downloads are deduplicated and queued without filling HTTP connections');
+}
+checkLoadQueue().catch(error=>{console.error(error);process.exitCode=1});

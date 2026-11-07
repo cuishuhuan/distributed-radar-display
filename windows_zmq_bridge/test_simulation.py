@@ -1,4 +1,5 @@
 import json
+import gzip
 import threading
 import unittest
 from http.server import ThreadingHTTPServer
@@ -40,6 +41,9 @@ class SimulationTests(unittest.TestCase):
                 with urlopen(req) as response:
                     return json.load(response)
             self.assertEqual(len(request('/api/state')['tracks']), 24)
+            with urlopen(Request(base+'/api/state', headers={'Accept-Encoding': 'gzip'})) as response:
+                self.assertEqual(response.headers['Content-Encoding'], 'gzip')
+                self.assertEqual(len(json.loads(gzip.decompress(response.read()))['tracks']), 24)
             request('/api/simulation/rate', {'rate': 12})
             self.assertEqual(request('/api/state')['simulationRate'], 12)
             with self.assertRaises(HTTPError) as error:
