@@ -1,0 +1,13 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict'),THREE=require('./three.min.js');
+const paint=new Proxy({}, {get:(_,key)=>key==='createLinearGradient'?()=>({addColorStop(){}}):()=>{}});
+const canvas=()=>({width:220,height:220,getContext:()=>paint});
+const context=vm.createContext({THREE,performance:{now:()=>1000},document:{getElementById:canvas,createElement:canvas},WORLD_KM:18,fpFrame:1,fpScene:new THREE.Scene(),compassText:deg=>['北','东北','东','东南','南','西南','西','西北'][Math.round(deg/45)%8]});
+vm.runInContext(fs.readFileSync(__dirname+'/bridge-scene.js','utf8'),context);
+assert.match(context.headingRibbon(359),/359°/);assert.match(context.headingRibbon(-1),/北方位/);assert.match(context.headingRibbon(180),/南方位/);
+context.updateCoastalScene({lon:113.7,lat:22.5},0);assert.equal(context.fpScene.children.length,6);
+const before=context.fpScene.children[0].position.clone();context.updateCoastalScene({lon:113.7,lat:22.5},Math.PI/2);
+const after=context.fpScene.children[0].position;assert.ok(Math.abs(after.x-before.z)<1e-8);assert.ok(Math.abs(after.z+before.x)<1e-8);
+for(const child of context.fpScene.children)assert.ok(child.position.toArray().every(Number.isFinite));
+console.log('heading wraparound and geographically anchored scenery OK');
+context.installBridgeInterior();const count=context.fpScene.children.length;context.installBridgeInterior();assert.equal(context.fpScene.children.length,count);
+let meshes=0;context.fpScene.children.at(-1).traverse(o=>{if(o.isMesh)meshes++});assert.ok(meshes>100);console.log('detailed bridge builds once with instrument displays OK');

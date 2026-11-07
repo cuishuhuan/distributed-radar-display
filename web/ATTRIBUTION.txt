@@ -1,0 +1,55 @@
+Ship image sources and licenses (Wikimedia Commons file pages):
+
+1. https://commons.wikimedia.org/wiki/File:Ships_at_Sea.jpg
+2. https://commons.wikimedia.org/wiki/File:Container_ship_at_sea_off_Slapton_Sands_-_4th_June_2012_-_panoramio.jpg
+3. https://commons.wikimedia.org/wiki/File:Tug_boat.jpg
+4. https://commons.wikimedia.org/wiki/File:USS_Raleigh_(LPD-1)_at_sea_on_14_June_1968.jpg
+5. https://commons.wikimedia.org/wiki/File:Ever_Given_container_ship.jpg
+6. https://commons.wikimedia.org/wiki/File:Yaquina,_Oceanography_research_vessel,_at_sea_(4617106068).jpg
+7. https://commons.wikimedia.org/wiki/File:USNS_Robert_E._Peary_at_sea._(8407484675).jpg
+8. https://commons.wikimedia.org/wiki/File:Oeltanker_1.jpg
+9. https://commons.wikimedia.org/wiki/File:Container_ship_MV_Maersk_Alabama.jpg
+10. https://commons.wikimedia.org/wiki/File:Vessel_at_sea_(11465337354).jpg
+11. https://commons.wikimedia.org/wiki/File:Ship_in_the_Sea_(4413075876).jpg
+12. https://commons.wikimedia.org/wiki/File:RV_Neil_Armstrong_rendering.jpg
+
+Radar/ISAR placeholder:
+https://commons.wikimedia.org/wiki/File:Radar_screen.JPG
+
+Maritime ISAR refocusing example displayed in the current interface:
+European Space Agency, "Innovative Inverse SAR-based solutions for moving targets"
+https://eo4society.esa.int/2025/02/28/innovative-inverse-sar-based-solutions-for-moving-targets/
+
+3D watercraft models:
+Kenney Watercraft Kit (CC0 1.0)
+https://kenney.nl/assets/watercraft-kit
+
+High-detail cargo ship model:
+"Cargo ship" by hungry_drifter (CC BY 4.0), provided by Sketchfab
+https://sketchfab.com/3d-models/cargo-ship-b7c97df584824ca682d26daabf401f87
+https://creativecommons.org/licenses/by/4.0/
+
+High-detail vessel models provided by Sketchfab:
+"Container Ship" by RM02 (CC BY 4.0)
+https://sketchfab.com/3d-models/container-ship-aaa41cca946b4a08bc08cf692b7757be
+"Tanker Ship" by Art Blender (CC BY 4.0)
+https://sketchfab.com/3d-models/tanker-ship-96ebf61af42b4062ae98a6ad848e1a25
+"20m search and rescue boat" by Nutical3D (CC BY 4.0)
+https://sketchfab.com/3d-models/20m-search-and-rescue-boat-6d53e735521f44af82142e6292b2f340
+"Tug Boat" by Foxy_Day (CC BY 4.0)
+https://sketchfab.com/3d-models/tug-boat-6b1c2ab367834ac18e6aaf90765dbbbd
+https://creativecommons.org/licenses/by/4.0/
+
+Small passenger ferry, 25 m (CC0), original model by Innerscene
+https://www.innerscene.com/tools/library/3d-parts/small-passenger-ferry-25-m-bb6ba356
+https://creativecommons.org/publicdomain/zero/1.0/
+
+"Finished Cruise Ship" by siuliano (CC BY 4.0), provided by Sketchfab
+https://sketchfab.com/3d-models/finished-cruise-ship-8fd630ce74c54fe986a792c3ebb5d57b
+Local adaptation: removed the model's surrounding ground plane; scaled for the scene.
+"Bulk Carrier" by medialog (CC BY 4.0), provided by Sketchfab
+https://sketchfab.com/3d-models/bulk-carrier-93c076900f004102b78dfac989efae1d
+"RCRV - Regional Class Research Vessel" by Alan Dennis (CC BY 4.0), provided by Sketchfab
+https://sketchfab.com/3d-models/rcrv-regional-class-research-vessel-11b4b97a9e60497ea91c0727e404ecf6
+Local adaptation: removed the model's ocean; scaled for the scene.
+https://creativecommons.org/licenses/by/4.0/

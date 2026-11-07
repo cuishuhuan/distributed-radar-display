@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+node_modules/
+.env
+.env.*
+!.env.example
+windows_zmq_bridge/settings.json
+*.log
+*.dat
+*.key
+*.pem
+.deploy-runtime/
+.DS_Store
+Thumbs.db
